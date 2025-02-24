@@ -1,6 +1,6 @@
 ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;
 
--- 📌 Création de la vue matérialisée principale avec tous les tickets.
+--  Création de la vue matérialisée principale avec tous les tickets.
 CREATE MATERIALIZED VIEW CYPI_CERGY.TICKETS_GLOBAL
 AS
 SELECT
@@ -74,14 +74,14 @@ LEFT JOIN (
 ) OBS ON OBS.id_ticket = T.id_ticket;
 
 
--- 📌 Nombre de tickets par catégorie.
+--  Nombre de tickets par catégorie.
 CREATE MATERIALIZED VIEW CYPI_CERGY.TICKETS_PAR_CATEGORIE AS
 SELECT C."categorie", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.CATEGORIES_TICKETS C ON TICKETS.fk_categorie = C.id_categorie
 GROUP BY C."categorie";
 
--- 📌 Nombre de tickets par emplacement.
+--  Nombre de tickets par emplacement.
 CREATE MATERIALIZED VIEW CYPI_CERGY.TICKETS_PAR_EMPLACEMENT AS
 SELECT E."emplacement", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
@@ -89,7 +89,7 @@ JOIN CYPI_CERGY.EMPLACEMENTS E ON TICKETS.fk_emplacement = E.id_emplacement
 GROUP BY E."emplacement";
 
 
--- 📌 Temps moyen de résolution des tickets.
+--  Temps moyen de résolution des tickets.
 CREATE MATERIALIZED VIEW CYPI_CERGY.TEMPS_RESOLUTION_TICKETS AS
 SELECT 
     TRUNC(AVG(JOURS_RESOLUTION)) AS jours_moyens,
@@ -107,7 +107,7 @@ FROM (
     )
 );
 
--- 📌 Activité récente des tickets.
+--  Activité récente des tickets.
 CREATE MATERIALIZED VIEW CYPI_CERGY.ACTIVITE_RECENTE_TICKETS AS
 SELECT id_ticket, titre, date_modification
 FROM (
@@ -117,7 +117,7 @@ FROM (
 )
 WHERE ROWNUM <= 100;
 
--- 📌 Tickets ouverts par catégorie.
+--  Tickets ouverts par catégorie.
 CREATE VIEW CYPI_CERGY.TICKETS_OUVERTS_PAR_CATEGORIE AS
 SELECT C."categorie", S.statut, COUNT(*) AS tickets_ouverts
 FROM CYPI_CERGY.TICKETS T
@@ -126,28 +126,28 @@ JOIN CYPI_CERGY.STATUTS_TICKETS S ON T.fk_statut = S.id_statut
 WHERE UPPER(S.statut) = 'A FAIRE' OR UPPER(S.statut) = 'EN COURS'
 GROUP BY C."categorie", S.statut;
 
--- 📌 Tickets clôturés.
+--  Tickets clôturés.
 CREATE VIEW CYPI_CERGY.TICKETS_CLOTURES AS
 SELECT T.*, S.statut
 FROM CYPI_CERGY.TICKETS T
 JOIN CYPI_CERGY.STATUTS_TICKETS S ON T.fk_statut = S.id_statut
 WHERE S.statut = 'TERMINE';
 
--- 📌 Tickets par priorité.
+--  Tickets par priorité.
 CREATE VIEW CYPI_CERGY.TICKETS_PAR_PRIORITE AS
 SELECT P."priorite", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.PRIORITES_TICKETS P ON TICKETS.fk_priorite = P.id_priorite
 GROUP BY P."priorite";
 
--- 📌 Tickets par statut.
+--  Tickets par statut.
 CREATE VIEW CYPI_CERGY.TICKETS_PAR_STATUT AS
 SELECT S.statut, COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.STATUTS_TICKETS S ON TICKETS.fk_statut = S.id_statut
 GROUP BY S.statut;
 
--- 📌 Tickets par type.
+--  Tickets par type.
 CREATE VIEW CYPI_CERGY.TICKETS_PAR_TYPE AS
 SELECT TYP."type", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
