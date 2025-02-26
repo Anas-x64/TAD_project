@@ -79,7 +79,7 @@ CREATE TABLE CYPI_CERGY.UTILISATEURS (
     FOREIGN KEY (fk_groupe) REFERENCES CYPI_CERGY.GROUPES_UTILISATEURS(id_groupe),  
     FOREIGN KEY (fk_emplacement) REFERENCES CYPI_CERGY.EMPLACEMENTS(id_emplacement)  
 )
-CLUSTER CYPI_CERGY.utilisateur_cluster(id_utilisateur);
+CLUSTER CYPI_CERGY.GROUPE_UTILISATEURS(id_utilisateur);
 
 --  Table principale des tickets.
 CREATE TABLE CYPI_CERGY.TICKETS (
@@ -108,7 +108,7 @@ CREATE TABLE CYPI_CERGY.TICKETS (
     FOREIGN KEY (fk_categorie) REFERENCES CYPI_CERGY.CATEGORIES_TICKETS(id_categorie),  
     FOREIGN KEY (fk_materiel) REFERENCES CYPI_CERGY.MATERIELS(id_materiel)  
 )
-CLUSTER CYPI_CERGY.ticket_cluster(id_ticket);
+CLUSTER CYPI_CERGY.GROUPE_TICKETS(id_ticket);
 
 --  Table des commentaires sur les tickets.
 CREATE TABLE CYPI_CERGY.COMMENTAIRES_TICKETS (
@@ -123,7 +123,7 @@ CREATE TABLE CYPI_CERGY.COMMENTAIRES_TICKETS (
     FOREIGN KEY (fk_ticket) REFERENCES CYPI_CERGY.TICKETS(id_ticket),  
     FOREIGN KEY (fk_utilisateur) REFERENCES CYPI_CERGY.UTILISATEURS(id_utilisateur)  
 )
-CLUSTER CYPI_CERGY.ticket_cluster(fk_ticket);
+CLUSTER CYPI_CERGY.GROUPE_TICKETS(fk_ticket);
 
 --  Table des ressources (fichiers, liens).
 CREATE TABLE CYPI_CERGY.RESSOURCES (
@@ -139,7 +139,7 @@ CREATE TABLE CYPI_CERGY.TICKETS_RESSOURCES (
     FOREIGN KEY (fk_ressource) REFERENCES CYPI_CERGY.RESSOURCES(id_ressource),  
     FOREIGN KEY (fk_ticket) REFERENCES CYPI_CERGY.TICKETS(id_ticket)  
 )
-CLUSTER CYPI_CERGY.ticket_cluster(fk_ticket);
+CLUSTER CYPI_CERGY.GROUPE_TICKETS(fk_ticket);
 
 --  Table de liaison entre les commentaires et les ressources.
 CREATE TABLE CYPI_CERGY.COMMENTAIRES_RESSOURCES (
@@ -158,7 +158,7 @@ CREATE TABLE CYPI_CERGY.OBSERVATEURS_TICKETS (
     FOREIGN KEY (fk_ticket) REFERENCES CYPI_CERGY.TICKETS(id_ticket),  
     FOREIGN KEY (fk_utilisateur) REFERENCES CYPI_CERGY.UTILISATEURS(id_utilisateur)  
 )
-CLUSTER CYPI_CERGY.utilisateur_cluster(fk_utilisateur);
+CLUSTER CYPI_CERGY.GROUPE_UTILISATEURS(fk_utilisateur);
 
 -- Table des responsables des tickets.
 CREATE TABLE CYPI_CERGY.ATTRIBUTIONS_TICKETS (
@@ -168,7 +168,7 @@ CREATE TABLE CYPI_CERGY.ATTRIBUTIONS_TICKETS (
     FOREIGN KEY (fk_ticket) REFERENCES CYPI_CERGY.TICKETS(id_ticket),  
     FOREIGN KEY (fk_utilisateur) REFERENCES CYPI_CERGY.UTILISATEURS(id_utilisateur)  
 )
-CLUSTER CYPI_CERGY.utilisateur_cluster(fk_utilisateur);
+CLUSTER CYPI_CERGY.GROUPE_UTILISATEURS(fk_utilisateur);
 
 COMMIT;
 EXIT;
