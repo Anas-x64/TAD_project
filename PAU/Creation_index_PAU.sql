@@ -76,4 +76,4 @@ CREATE INDEX CYPI_PAU.idx_utilisateurs_emplacement_entreprise ON CYPI_PAU.UTILIS
 -- VALIDATION ET COMMIT
 --------------------------------------------
 COMMIT;
-EXIT;
+

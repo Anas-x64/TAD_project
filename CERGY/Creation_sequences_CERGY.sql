@@ -61,4 +61,4 @@ CREATE SEQUENCE CYPI_CERGY.seq_id_ressources
   INCREMENT BY 1;
 
 COMMIT;
-EXIT;
+

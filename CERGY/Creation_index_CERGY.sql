@@ -74,4 +74,4 @@ CREATE INDEX CYPI_CERGY.idx_utilisateurs_emplacement_entreprise ON CYPI_CERGY.UT
 -- VALIDATION ET COMMIT
 --------------------------------------------
 COMMIT;
-EXIT;
+

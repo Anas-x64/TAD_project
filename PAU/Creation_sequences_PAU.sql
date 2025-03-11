@@ -63,4 +63,4 @@ CREATE SEQUENCE CYPI_PAU.seq_id_ressources
   INCREMENT BY 1;
 
 COMMIT;
-EXIT;
+

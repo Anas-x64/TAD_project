@@ -156,6 +156,6 @@ END;
 /
  
 COMMIT;
-EXIT;
+
  
  
