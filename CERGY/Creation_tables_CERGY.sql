@@ -24,7 +24,7 @@ CREATE TABLE CYPI_CERGY.STATUTS_TICKETS (
 --  Table des niveaux de priorité des tickets.
 CREATE TABLE CYPI_CERGY.PRIORITES_TICKETS (
     id_priorite INT PRIMARY KEY,  
-    "priorite" VARCHAR2(10) NOT NULL UNIQUE  
+    "priorite" VARCHAR2(50) NOT NULL UNIQUE  
 );
 
 --  Table des catégories des tickets.
@@ -44,7 +44,7 @@ CREATE TABLE CYPI_CERGY.EMPLACEMENTS (
     id_emplacement INT PRIMARY KEY,  
     ville VARCHAR2(50) NOT NULL,  
     "site" VARCHAR2(50) NOT NULL,  
-    "emplacement" VARCHAR2(103) UNIQUE  
+    "emplacement" VARCHAR2(103) NOT NULL UNIQUE  
 );
 
 --  Table des matériels liés aux tickets.

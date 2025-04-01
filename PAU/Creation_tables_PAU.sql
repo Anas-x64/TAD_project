@@ -24,7 +24,7 @@ CREATE TABLE CYPI_PAU.STATUTS_TICKETS (
 -- Table des niveaux de priorité des tickets.
 CREATE TABLE CYPI_PAU.PRIORITES_TICKETS (
     id_priorite INT PRIMARY KEY,  
-    "priorite" VARCHAR2(10) NOT NULL UNIQUE  
+    "priorite" VARCHAR2(50) NOT NULL UNIQUE  
 );
 
 -- Table des catégories des tickets.

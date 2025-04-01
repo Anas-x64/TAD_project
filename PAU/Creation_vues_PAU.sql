@@ -1,6 +1,4 @@
 ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;
-CONNECT CYPI_PAU/CYPI_PAU_PASSWORD;
-
 --  Création de la vue matérialisée principale avec tous les tickets.
 CREATE MATERIALIZED VIEW CYPI_PAU.TICKETS_GLOBAL
 AS
