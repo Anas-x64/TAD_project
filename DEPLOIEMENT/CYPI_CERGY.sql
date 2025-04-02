@@ -1,5 +1,13 @@
+------------------------------------------------------------------------
+-- Active le mode script Oracle s’il faut
+------------------------------------------------------------------------
 ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;
---  Création de la vue matérialisée principale avec tous les tickets.
+
+------------------------------------------------------------------------
+-- VUES MATERIALISEES
+------------------------------------------------------------------------
+
+-- 1) TICKETS_GLOBAL
 CREATE MATERIALIZED VIEW CYPI_CERGY.TICKETS_GLOBAL
 AS
 SELECT
@@ -73,14 +81,15 @@ LEFT JOIN (
 ) OBS ON OBS.id_ticket = T.id_ticket;
 
 
---  Nombre de tickets par catégorie.
+-- 2) TICKETS_PAR_CATEGORIE
 CREATE MATERIALIZED VIEW CYPI_CERGY.TICKETS_PAR_CATEGORIE AS
 SELECT C."categorie", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.CATEGORIES_TICKETS C ON TICKETS.fk_categorie = C.id_categorie
 GROUP BY C."categorie";
 
---  Nombre de tickets par emplacement.
+
+-- 3) TICKETS_PAR_EMPLACEMENT
 CREATE MATERIALIZED VIEW CYPI_CERGY.TICKETS_PAR_EMPLACEMENT AS
 SELECT E."emplacement", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
@@ -88,7 +97,7 @@ JOIN CYPI_CERGY.EMPLACEMENTS E ON TICKETS.fk_emplacement = E.id_emplacement
 GROUP BY E."emplacement";
 
 
---  Temps moyen de résolution des tickets.
+-- 4) TEMPS_RESOLUTION_TICKETS
 CREATE MATERIALIZED VIEW CYPI_CERGY.TEMPS_RESOLUTION_TICKETS AS
 SELECT 
     TRUNC(AVG(JOURS_RESOLUTION)) AS jours_moyens,
@@ -106,7 +115,8 @@ FROM (
     )
 );
 
---  Activité récente des tickets.
+
+-- 5) ACTIVITE_RECENTE_TICKETS
 CREATE MATERIALIZED VIEW CYPI_CERGY.ACTIVITE_RECENTE_TICKETS AS
 SELECT id_ticket, titre, date_modification
 FROM (
@@ -116,8 +126,12 @@ FROM (
 )
 WHERE ROWNUM <= 100;
 
---  Tickets ouverts par catégorie.
-CREATE VIEW CYPI_CERGY.TICKETS_OUVERTS_PAR_CATEGORIE AS
+------------------------------------------------------------------------
+-- VUES SIMPLES
+------------------------------------------------------------------------
+
+-- 6) TICKETS_OUVERTS_PAR_CATEGORIE
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_OUVERTS_PAR_CATEGORIE AS
 SELECT C."categorie", S.statut, COUNT(*) AS tickets_ouverts
 FROM CYPI_CERGY.TICKETS T
 JOIN CYPI_CERGY.CATEGORIES_TICKETS C ON T.fk_categorie = C.id_categorie
@@ -125,35 +139,135 @@ JOIN CYPI_CERGY.STATUTS_TICKETS S ON T.fk_statut = S.id_statut
 WHERE UPPER(S.statut) = 'A FAIRE' OR UPPER(S.statut) = 'EN COURS'
 GROUP BY C."categorie", S.statut;
 
---  Tickets clôturés.
-CREATE VIEW CYPI_CERGY.TICKETS_CLOTURES AS
+
+-- 7) TICKETS_CLOTURES
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_CLOTURES AS
 SELECT T.*, S.statut
 FROM CYPI_CERGY.TICKETS T
 JOIN CYPI_CERGY.STATUTS_TICKETS S ON T.fk_statut = S.id_statut
 WHERE S.statut = 'TERMINE';
 
---  Tickets par priorité.
-CREATE VIEW CYPI_CERGY.TICKETS_PAR_PRIORITE AS
+
+-- 8) TICKETS_PAR_PRIORITE
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_PAR_PRIORITE AS
 SELECT P."priorite", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.PRIORITES_TICKETS P ON TICKETS.fk_priorite = P.id_priorite
 GROUP BY P."priorite";
 
---  Tickets par statut.
-CREATE VIEW CYPI_CERGY.TICKETS_PAR_STATUT AS
+
+-- 9) TICKETS_PAR_STATUT
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_PAR_STATUT AS
 SELECT S.statut, COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.STATUTS_TICKETS S ON TICKETS.fk_statut = S.id_statut
 GROUP BY S.statut;
 
---  Tickets par type.
-CREATE VIEW CYPI_CERGY.TICKETS_PAR_TYPE AS
+
+-- 10) TICKETS_PAR_TYPE
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_PAR_TYPE AS
 SELECT TYP."type", COUNT(*) AS nombre_tickets
 FROM CYPI_CERGY.TICKETS
 JOIN CYPI_CERGY.TYPES_TICKETS TYP ON TICKETS.fk_type = TYP.id_type
 GROUP BY TYP."type";
 
+
+-- 11) TICKETS_PAR_UTILISATEUR
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_PAR_UTILISATEUR AS
+SELECT
+    U.id_utilisateur,
+    (U.nom || ' ' || U.prenom) AS nom_complet,
+    COUNT(T.id_ticket) AS nombre_tickets
+FROM CYPI_CERGY.UTILISATEURS U
+LEFT JOIN CYPI_CERGY.TICKETS T
+    ON T.fk_createur = U.id_utilisateur
+GROUP BY U.id_utilisateur, U.nom, U.prenom;
+
+-- 12) TICKETS_EN_RETARD (ex: +7 jours, statut pas fermé/terminé)
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_EN_RETARD AS
+SELECT t.*
+FROM CYPI_CERGY.TICKETS t
+JOIN CYPI_CERGY.STATUTS_TICKETS s ON t.fk_statut = s.id_statut
+WHERE t.date_creation < (CURRENT_TIMESTAMP - INTERVAL '7' DAY)
+  AND UPPER(s.statut) NOT IN ('FERMÉ', 'TERMINE');
+
+-- 13) TICKETS_SANS_COMMENTAIRES
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_SANS_COMMENTAIRES AS
+SELECT t.*
+FROM CYPI_CERGY.TICKETS t
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM CYPI_CERGY.COMMENTAIRES_TICKETS c
+    WHERE c.fk_ticket = t.id_ticket
+);
+
+-- 14) COMMENTAIRES_RECENTS
+CREATE OR REPLACE VIEW CYPI_CERGY.COMMENTAIRES_RECENTS AS
+SELECT c.id_commentaire,
+       c.fk_ticket,
+       c.fk_utilisateur,
+       (u.nom || ' ' || u.prenom) AS auteur_commentaire,
+       c.date_creation,
+       c."contenu",
+       t.titre AS titre_ticket
+FROM CYPI_CERGY.COMMENTAIRES_TICKETS c
+JOIN CYPI_CERGY.UTILISATEURS u
+    ON c.fk_utilisateur = u.id_utilisateur
+JOIN CYPI_CERGY.TICKETS t
+    ON c.fk_ticket = t.id_ticket
+ORDER BY c.date_creation DESC;
+
+-- 15) TICKETS_PAR_GROUPE
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_PAR_GROUPE AS
+SELECT 
+    g.id_groupe,
+    g."groupe" AS nom_groupe,
+    COUNT(t.id_ticket) AS nb_tickets
+FROM CYPI_CERGY.GROUPES_UTILISATEURS g
+LEFT JOIN CYPI_CERGY.TICKETS t
+    ON t.fk_groupe_attribue = g.id_groupe
+GROUP BY g.id_groupe, g."groupe";
+
+-- 16) ATTRIBUTIONS_DETAILLEES
+CREATE OR REPLACE VIEW CYPI_CERGY.ATTRIBUTIONS_DETAILLEES AS
+SELECT 
+    t.id_ticket,
+    t.titre,
+    u.id_utilisateur,
+    (u.nom || ' ' || u.prenom) AS nom_complet,
+    r."role" AS role_utilisateur,
+    gr."groupe" AS groupe_utilisateur
+FROM CYPI_CERGY.ATTRIBUTIONS_TICKETS at
+JOIN CYPI_CERGY.TICKETS t
+    ON at.fk_ticket = t.id_ticket
+JOIN CYPI_CERGY.UTILISATEURS u
+    ON at.fk_utilisateur = u.id_utilisateur
+LEFT JOIN CYPI_CERGY.ROLES_UTILISATEURS r
+    ON u.fk_role = r.id_role
+LEFT JOIN CYPI_CERGY.GROUPES_UTILISATEURS gr
+    ON u.fk_groupe = gr.id_groupe;
+
+-- 17) UTILISATEURS_SANS_TICKETS
+CREATE OR REPLACE VIEW CYPI_CERGY.UTILISATEURS_SANS_TICKETS AS
+SELECT u.*
+FROM CYPI_CERGY.UTILISATEURS u
+WHERE NOT EXISTS (
+  SELECT 1 
+  FROM CYPI_CERGY.TICKETS t
+  WHERE t.fk_createur = u.id_utilisateur
+);
+
+-- 18) TICKETS_PAR_JOUR
+CREATE OR REPLACE VIEW CYPI_CERGY.TICKETS_PAR_JOUR AS
+SELECT
+    TRUNC(date_creation) AS jour,
+    COUNT(*) AS nb_tickets
+FROM CYPI_CERGY.TICKETS
+GROUP BY TRUNC(date_creation)
+ORDER BY jour;
+
 COMMIT;
+
 
 -- Inserts pour ROLES_UTILISATEURS
 INSERT INTO CYPI_CERGY.ROLES_UTILISATEURS (id_role, "role") VALUES (1, 'Coordinateur');
