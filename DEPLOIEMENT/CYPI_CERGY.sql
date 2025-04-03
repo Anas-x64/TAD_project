@@ -88,7 +88,7 @@ VALUES (5, 3, 3, 'MySecure@Pass123', 'leo.dubois@exemple.com', 'Dubois', 'Léo',
     
 -- 1) Ajout de 10 000 UTILISATEURS supplémentaires
 BEGIN
-  FOR i IN 6..10005 LOOP  -- on part de 6 car tu as déjà 5 utilisateurs (ID=1..5)
+  FOR i IN 6..10005 LOOP
     INSERT INTO CYPI_CERGY.UTILISATEURS (
       id_utilisateur,
       fk_role,
@@ -101,23 +101,31 @@ BEGIN
       fk_emplacement
     ) VALUES (
       i,
-      /* role entre 1 et 4 */
-      TRUNC(DBMS_RANDOM.VALUE(1, 5)), 
-      /* groupe entre 1 et 3 */
+      -- Rôles entre 1 et 4
+      TRUNC(DBMS_RANDOM.VALUE(1, 5)),
+      -- Groupes entre 1 et 3
       TRUNC(DBMS_RANDOM.VALUE(1, 4)),
-      /* Mot de passe random basique, adapt si besoin */
+      -- Mot de passe random
       'RandomP@ssssss' || i || '!',
-      /* Email unique */
+      -- Email unique
       'user_' || i || '@exemple.com',
-      /* Nom & prénom randomisables */
+      -- Nom, Prénom
       'Nom_' || i,
       'Prenom_' || i,
-      /* Entreprise, mettons 1..5 juste pour un test */
-      'Entreprise_' || TRUNC(DBMS_RANDOM.VALUE(1,6)),
-      /* fk_emplacement : 1..5 */
-      TRUNC(DBMS_RANDOM.VALUE(1,6))
+      -- Entreprise aléatoire parmi les 4
+      CASE TRUNC(DBMS_RANDOM.VALUE(1,5))
+        WHEN 1 THEN 'TechCorp'
+        WHEN 2 THEN 'InnoSoft'
+        WHEN 3 THEN 'DevSolutions'
+        WHEN 4 THEN 'CloudSystems'
+        -- On peut répéter TechCorp ou en rajouter si on veut 5 comme limite
+        ELSE 'TechCorp'
+      END,
+      -- fk_emplacement (1..5 par exemple)
+      TRUNC(DBMS_RANDOM.VALUE(1, 6))
     );
   END LOOP;
+
   COMMIT;
 END;
 /

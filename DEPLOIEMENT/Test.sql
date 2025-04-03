@@ -99,17 +99,13 @@ ORDER BY nb_commentaires DESC;
 
 
 ---------------------------------------------------------------
--- PARTIE 2 : REQUETE #2 (UTILISATEURS / ROLES / GROUPES)
----------------------------------------------------------------
-
----------------------------------------------------------------
 -- Situation A : SANS INDEX COMPOSITE
 ---------------------------------------------------------------
+SET TIMING ON;
+-- 1) DROP INDEX (on suppose qu'il existe, sinon message d'erreur)
+DROP INDEX CYPI_CERGY.idx_utilisateurs_fk_groupe;
 
--- 1) DROP INDEX
-DROP INDEX idx_utilisateurs_fk_role_groupe_entreprise;
-
--- 2) EXPLAIN PLAN
+-- 2) EXPLAIN PLAN (avec la nouvelle requête multi-valeurs)
 EXPLAIN PLAN FOR
 SELECT
     u.id_utilisateur,
@@ -123,14 +119,15 @@ JOIN ROLES_UTILISATEURS r
     ON u.fk_role = r.id_role
 JOIN GROUPES_UTILISATEURS g
     ON u.fk_groupe = g.id_groupe
-WHERE u.fk_role = 2
-  AND u.fk_groupe = 2
-  AND u.entreprise = 'TechCorp';
+WHERE u.fk_role IN (1, 1000)
+  AND u.fk_groupe IN (1, 1000)
+  AND u.entreprise IN ('Techcorp', 'Innosoft');
+
 
 -- 3) Affichage du plan
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY());
 
--- 4) Exécution de la requête
+-- 4) Exécution de la requête (pour mesurer le temps)
 SELECT
     u.id_utilisateur,
     u.nom,
@@ -143,19 +140,20 @@ JOIN ROLES_UTILISATEURS r
     ON u.fk_role = r.id_role
 JOIN GROUPES_UTILISATEURS g
     ON u.fk_groupe = g.id_groupe
-WHERE u.fk_role = 2
-  AND u.fk_groupe = 2
-  AND u.entreprise = 'TechCorp';
+WHERE u.fk_role IN (1, 1000)
+  AND u.fk_groupe IN (1, 1000)
+  AND u.entreprise IN ('Techcorp', 'Innosoft');
 
 
 ---------------------------------------------------------------
 -- Situation B : AVEC INDEX COMPOSITE
 ---------------------------------------------------------------
 
--- 1) CREATE INDEX
-CREATE INDEX CYPI_CERGY.idx_utilisateurs_fk_groupe ON UTILISATEURS(fk_role, fk_groupe, entreprise);
+-- 1) CREATE INDEX (B-tree composite)
+CREATE INDEX CYPI_CERGY.idx_utilisateurs_fk_groupe 
+   ON CYPI_CERGY.UTILISATEURS (fk_role, fk_groupe, entreprise);
 
--- 2) EXPLAIN PLAN
+-- 2) EXPLAIN PLAN (même requête)
 EXPLAIN PLAN FOR
 SELECT
     u.id_utilisateur,
@@ -169,9 +167,10 @@ JOIN ROLES_UTILISATEURS r
     ON u.fk_role = r.id_role
 JOIN GROUPES_UTILISATEURS g
     ON u.fk_groupe = g.id_groupe
-WHERE u.fk_role = 2
-  AND u.fk_groupe = 2
-  AND u.entreprise = 'TechCorp';
+WHERE u.fk_role IN (1, 1000)
+  AND u.fk_groupe IN (1, 1000)
+  AND u.entreprise IN ('Techcorp', 'Innosoft');
+
 
 -- 3) Affichage du plan
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY());
@@ -189,7 +188,8 @@ JOIN ROLES_UTILISATEURS r
     ON u.fk_role = r.id_role
 JOIN GROUPES_UTILISATEURS g
     ON u.fk_groupe = g.id_groupe
-WHERE u.fk_role = 2
-  AND u.fk_groupe = 2
-  AND u.entreprise = 'TechCorp';
+WHERE u.fk_role IN (1, 1000)
+  AND u.fk_groupe IN (1, 1000)
+  AND u.entreprise IN ('Techcorp', 'Innosoft');
+
 
