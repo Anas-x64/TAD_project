@@ -85,6 +85,42 @@ VALUES (4, 4, 1, 'P@ssw0rdQwerty!', 'carla.brun@exemple.com', 'Brun', 'Carla', '
 INSERT INTO CYPI_CERGY.UTILISATEURS (id_utilisateur, fk_role, fk_groupe, "mot_de_passe", email, nom, prenom, entreprise, fk_emplacement) 
 VALUES (5, 3, 3, 'MySecure@Pass123', 'leo.dubois@exemple.com', 'Dubois', 'Léo', 'CloudSystems', 5);
     
+-- 1) Ajout de 10 000 UTILISATEURS supplémentaires
+BEGIN
+  FOR i IN 6..10005 LOOP  
+    INSERT INTO CYPI_CERGY.UTILISATEURS (
+      id_utilisateur,
+      fk_role,
+      fk_groupe,
+      "mot_de_passe",
+      email,
+      nom,
+      prenom,
+      entreprise,
+      fk_emplacement
+    ) VALUES (
+      i,
+      /* role entre 1 et 4 */
+      TRUNC(DBMS_RANDOM.VALUE(1, 5)), 
+      /* groupe entre 1 et 3 */
+      TRUNC(DBMS_RANDOM.VALUE(1, 4)),
+      /* Mot de passe random basique, adapt si besoin */
+      'RandomP@ssssss' || i || '!',
+      /* Email unique */
+      'user_' || i || '@exemple.com',
+      /* Nom & prénom randomisables */
+      'Nom_' || i,
+      'Prenom_' || i,
+      /* Entreprise, mettons 1..5 juste pour un test */
+      'Entreprise_' || TRUNC(DBMS_RANDOM.VALUE(1,6)),
+      /* fk_emplacement : 1..5 */
+      TRUNC(DBMS_RANDOM.VALUE(1,6))
+    );
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 -- Inserts pour TICKETS
 -- Insertion de tickets dans la table TICKETS
@@ -103,6 +139,79 @@ VALUES (4, 4, 2, 2, 'Problème de lenteur réseau', 'Les employés signalent des
 INSERT INTO CYPI_CERGY.TICKETS (id_ticket, fk_createur, fk_type, fk_priorite, titre, "description", fk_emplacement, date_creation, fk_groupe_attribue, fk_statut, fk_categorie, fk_materiel)
 VALUES (5, 5, 1, 4, 'Demande de mise à jour logiciel', 'L’utilisateur souhaite mettre à jour son logiciel de gestion des tickets.', 5, SYSTIMESTAMP, NULL, 4, 5, NULL);
 
+
+-- 2) Ajout de 10 000 TICKETS supplémentaires
+BEGIN
+  FOR i IN 6..10005 LOOP  
+    INSERT INTO CYPI_CERGY.TICKETS (
+      id_ticket,
+      fk_createur,
+      fk_type,
+      fk_priorite,
+      titre,
+      "description",
+      fk_emplacement,
+      date_creation,
+      date_modification,
+      date_resolution,
+      note_resolution,
+      date_cloture,
+      fk_groupe_attribue,
+      fk_statut,
+      fk_categorie,
+      fk_materiel
+    ) VALUES (
+      i,
+      
+      TRUNC(DBMS_RANDOM.VALUE(1, 10006)),
+      TRUNC(DBMS_RANDOM.VALUE(1, 7)),
+      TRUNC(DBMS_RANDOM.VALUE(1, 7)),
+      -- Titre
+      'Titre Ticket #' || i,
+      -- Description
+      'Description generique pour le ticket ' || i || 
+        '. Généré massivement par script.',
+
+      TRUNC(DBMS_RANDOM.VALUE(1, 6)),
+      
+      SYSTIMESTAMP - TRUNC(DBMS_RANDOM.VALUE(0, 100)),
+      
+      SYSTIMESTAMP,
+      
+      CASE 
+        WHEN DBMS_RANDOM.VALUE(0,1) < 0.5 THEN SYSTIMESTAMP 
+        ELSE NULL 
+      END,
+     
+      CASE 
+        WHEN DBMS_RANDOM.VALUE(0,1) < 0.5 THEN 'Résolution auto ' || i
+        ELSE NULL
+      END,
+      
+      CASE 
+        WHEN DBMS_RANDOM.VALUE(0,1) < 0.25 THEN SYSTIMESTAMP
+        ELSE NULL
+      END,
+      
+      CASE 
+        WHEN DBMS_RANDOM.VALUE(0,1) < 0.7 THEN TRUNC(DBMS_RANDOM.VALUE(1, 4))
+        ELSE NULL
+      END,
+      
+      TRUNC(DBMS_RANDOM.VALUE(1, 7)),
+      
+      TRUNC(DBMS_RANDOM.VALUE(1, 8)),
+     
+      CASE 
+        WHEN DBMS_RANDOM.VALUE(0,1) < 0.7 THEN TRUNC(DBMS_RANDOM.VALUE(1,7))
+        ELSE NULL
+      END
+    );
+  END LOOP;
+  COMMIT;
+END;
+/
+------------------------------------------------------------------------------- 
 
 -- Insertion de commentaires dans la table COMMENTAIRES_TICKETS
 INSERT INTO CYPI_CERGY.COMMENTAIRES_TICKETS (id_commentaire, fk_ticket, fk_utilisateur, tache, "contenu") 
@@ -126,6 +235,39 @@ VALUES (6, 3, 1, 'Problème réseau', 'L’imprimante ne répond pas au ping. V�
 INSERT INTO CYPI_CERGY.COMMENTAIRES_TICKETS (id_commentaire, fk_ticket, fk_utilisateur, fk_reponse_a, tache, "contenu") 
 VALUES (7, 3, 2, 6, 'Changement de câble', 'Remplacement du câble réseau effectué, tests en cours.');
 
+-- 3) Ajout de 10 000 COMMENTAIRES_TICKETS
+
+BEGIN
+  FOR i IN 8..10007 LOOP 
+    INSERT INTO CYPI_CERGY.COMMENTAIRES_TICKETS (
+      id_commentaire,
+      fk_reponse_a,
+      fk_ticket,
+      fk_utilisateur,
+      date_creation,
+      tache,
+      "contenu"
+    ) VALUES (
+      i,
+      
+      CASE 
+        WHEN DBMS_RANDOM.VALUE(0,1) < 0.1 THEN TRUNC(DBMS_RANDOM.VALUE(1, i))
+        ELSE NULL
+      END,
+      
+      TRUNC(DBMS_RANDOM.VALUE(1, 10006)),
+      
+      TRUNC(DBMS_RANDOM.VALUE(1, 10006)),
+      
+      SYSTIMESTAMP - TRUNC(DBMS_RANDOM.VALUE(0, 50)),
+      'Tache_' || i,
+      'Contenu auto-généré pour le commentaire #' || i
+    );
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 -- Insertion de ressources dans la table RESSOURCES
 INSERT INTO CYPI_CERGY.RESSOURCES (id_ressource, ressource) 
@@ -149,6 +291,22 @@ VALUES (6, 'https://networktroubleshooting.com/slow-connection');
 INSERT INTO CYPI_CERGY.RESSOURCES (id_ressource, ressource) 
 VALUES (7, 'https://download.cybersecurity-guidelines.com/password-security.pdf');
 
+-- 4) Ajout de 10 000 RESSOURCES
+
+BEGIN
+  FOR i IN 8..10007 LOOP
+    INSERT INTO CYPI_CERGY.RESSOURCES (
+      id_ressource,
+      ressource
+    ) VALUES (
+      i,
+      'http://ressource_'|| i || '.exemple.com'
+    );
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 -- Association des ressources aux tickets
 INSERT INTO CYPI_CERGY.TICKETS_RESSOURCES (fk_ressource, fk_ticket) 
@@ -169,6 +327,30 @@ VALUES (6, 4); -- Internet lent, lien vers un guide de diagnostic réseau
 INSERT INTO CYPI_CERGY.TICKETS_RESSOURCES (fk_ressource, fk_ticket) 
 VALUES (7, 5); -- Politique de sécurité des mots de passe, lien vers un document interne
 
+-- 5) Ajout de 10 000 TICKETS_RESSOURCES
+
+BEGIN
+  FOR i IN 1..10000 LOOP
+    BEGIN
+      INSERT INTO CYPI_CERGY.TICKETS_RESSOURCES (
+        fk_ressource,
+        fk_ticket
+      ) VALUES (
+        
+        TRUNC(DBMS_RANDOM.VALUE(1, 10008)),
+        
+        TRUNC(DBMS_RANDOM.VALUE(1, 10006))
+      );
+    EXCEPTION
+      WHEN DUP_VAL_ON_INDEX THEN
+        
+        NULL;
+    END;
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 -- Association des ressources aux commentaires
 INSERT INTO CYPI_CERGY.COMMENTAIRES_RESSOURCES (fk_ressource, fk_commentaire) 
@@ -189,6 +371,27 @@ VALUES (6, 5); -- Commentaire sur un réseau lent, lien vers guide de diagnostic
 INSERT INTO CYPI_CERGY.COMMENTAIRES_RESSOURCES (fk_ressource, fk_commentaire) 
 VALUES (7, 2); -- Commentaire sur la politique de mots de passe, lien vers document interne
 
+-- 6) Ajout de 10 000 COMMENTAIRES_RESSOURCES
+
+BEGIN
+  FOR i IN 1..10000 LOOP
+    BEGIN
+      INSERT INTO CYPI_CERGY.COMMENTAIRES_RESSOURCES (
+        fk_ressource,
+        fk_commentaire
+      ) VALUES (
+        TRUNC(DBMS_RANDOM.VALUE(1, 10008)),  
+        TRUNC(DBMS_RANDOM.VALUE(1, 10008))   
+      );
+    EXCEPTION
+      WHEN DUP_VAL_ON_INDEX THEN
+        NULL;
+    END;
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 -- Association des observateurs aux tickets
 INSERT INTO CYPI_CERGY.OBSERVATEURS_TICKETS (fk_ticket, fk_utilisateur) 
@@ -215,7 +418,27 @@ VALUES (3, 5); -- L'utilisateur 7 observe le ticket 3
 INSERT INTO CYPI_CERGY.OBSERVATEURS_TICKETS (fk_ticket, fk_utilisateur) 
 VALUES (5, 5); -- L'utilisateur 8 observe le ticket 5
 
+-- 7) Ajout de 10 000 OBSERVATEURS_TICKETS
 
+BEGIN
+  FOR i IN 1..10000 LOOP
+    BEGIN
+      INSERT INTO CYPI_CERGY.OBSERVATEURS_TICKETS (
+        fk_ticket,
+        fk_utilisateur
+      ) VALUES (
+        TRUNC(DBMS_RANDOM.VALUE(1, 10006)),  
+        TRUNC(DBMS_RANDOM.VALUE(1, 10006))   
+      );
+    EXCEPTION
+      WHEN DUP_VAL_ON_INDEX THEN
+        NULL;
+    END;
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 -- Attribution des tickets aux responsables
 INSERT INTO CYPI_CERGY.ATTRIBUTIONS_TICKETS (fk_ticket, fk_utilisateur) 
@@ -241,5 +464,27 @@ VALUES (5, 5); -- L'utilisateur 8 est responsable du ticket 7
 
 INSERT INTO CYPI_CERGY.ATTRIBUTIONS_TICKETS (fk_ticket, fk_utilisateur) 
 VALUES (5, 4); -- L'utilisateur 7 est responsable du ticket 8
+
+-- 8) Ajout de 10 000 ATTRIBUTIONS_TICKETS
+
+BEGIN
+  FOR i IN 1..10000 LOOP
+    BEGIN
+      INSERT INTO CYPI_CERGY.ATTRIBUTIONS_TICKETS (
+        fk_ticket,
+        fk_utilisateur
+      ) VALUES (
+        TRUNC(DBMS_RANDOM.VALUE(1, 10006)),  
+        TRUNC(DBMS_RANDOM.VALUE(1, 10006))   
+      );
+    EXCEPTION
+      WHEN DUP_VAL_ON_INDEX THEN
+        NULL;
+    END;
+  END LOOP;
+  COMMIT;
+END;
+/
+-------------------------------------------------------------------------------
 
 COMMIT;
